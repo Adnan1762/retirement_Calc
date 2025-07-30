@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retirement Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .result {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      border-radius: 5px;
+    }
+    .result h2 {
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Flexible Retirement Calculator</h1>
+
+  <label for="initialCtc">Initial Annual CTC (₹):</label>
+  <input type="number" id="initialCtc" value="800000" />
+
+  <label for="growthRate">Average Annual Salary Growth (%):</label>
+  <input type="number" id="growthRate" value="10" />
+
+  <label for="sipInput">SIP Investment (% of CTC per year):</label>
+  <input type="number" id="sipInput" value="20" />
+
+  <label for="returnInput">Expected Annual Return (%):</label>
+  <input type="number" id="returnInput" value="12" />
+
+  <label for="inflationInput">Expected Annual Inflation (%):</label>
+  <input type="number" id="inflationInput" value="6" />
+
+  <label for="retirementAgeInput">Retirement Age:</label>
+  <input type="number" id="retirementAgeInput" value="53" />
+
+  <label for="monthlyExpenseInput">Monthly Retirement Expense (₹):</label>
+  <input type="number" id="monthlyExpenseInput" value="100000" />
+
+  <button onclick="calculateRetirement()">Calculate</button>
+
+  <div class="result" id="result"></div>
+
+  <script>
+    function calculateRetirement() {
+      const currentAge = 23;
+      const initialCtc = parseFloat(document.getElementById("initialCtc").value);
+      const growthRate = parseFloat(document.getElementById("growthRate").value) / 100;
+      const sipPercent = parseFloat(document.getElementById("sipInput").value) / 100;
+      const annualReturn = parseFloat(document.getElementById("returnInput").value) / 100;
+      const inflation = parseFloat(document.getElementById("inflationInput").value) / 100;
+      const retirementAge = parseInt(document.getElementById("retirementAgeInput").value);
+      const monthlyExpense = parseFloat(document.getElementById("monthlyExpenseInput").value);
+
+      const resultDiv = document.getElementById("result");
+      const yearsToWork = retirementAge - currentAge;
+
+      let investment = 0;
+      let ctc = initialCtc;
+      for (let year = 0; year < yearsToWork; year++) {
+        const sip = ctc * sipPercent;
+        investment = investment * (1 + annualReturn) + sip;
+        ctc *= (1 + growthRate);
+      }
+
+      const retirementCorpus = investment;
+      let remainingCorpus = retirementCorpus;
+      let age = retirementAge;
+      let expenses = monthlyExpense * 12;
+      const outflow = [];
+
+      while (remainingCorpus > 0 && expenses < 1e9) {
+        remainingCorpus = remainingCorpus * (1 + annualReturn) - expenses;
+        outflow.push({
+          age: age,
+          expense: Math.round(expenses),
+          corpusEnd: Math.round(remainingCorpus)
+        });
+        expenses *= 1 + inflation;
+        age++;
+      }
+
+      let html = `<h2>Results</h2>`;
+      html += `<p><strong>Corpus at retirement (age ${retirementAge}):</strong> ₹${Math.round(retirementCorpus).toLocaleString()}</p>`;
+      html += `<p><strong>Funds will last until age:</strong> ${age}</p>`;
+
+      html += `<details><summary>Yearly Breakdown</summary><ul>`;
+      for (const row of outflow) {
+        html += `<li>Age ${row.age}: Expense ₹${row.expense.toLocaleString()}, Corpus Left ₹${row.corpusEnd.toLocaleString()}</li>`;
+      }
+      html += `</ul></details>`;
+
+      resultDiv.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
